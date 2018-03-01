@@ -93,3 +93,6 @@ LOCK
 LOG*
 CURRENT
 MANIFEST-*
+
+# RankHardLoss
+examples/rank_alexnet/collect*
