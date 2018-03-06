@@ -2,4 +2,4 @@
 
 TOOLS=$CAFFE_ROOT/build/tools
 
-$TOOLS/caffe train --solver=solver.prototxt 
+$TOOLS/caffe train --solver=$1
