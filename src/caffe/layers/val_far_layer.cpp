@@ -29,6 +29,8 @@ void ValFarLayer<Dtype>::Reshape(
   vector<int> top_shape(0);
   top[0]->Reshape(top_shape);
   top[1]->Reshape(top_shape);
+  top[2]->Reshape(top_shape);
+  top[3]->Reshape(top_shape);
 }
 
 template <typename Dtype>
@@ -48,8 +50,10 @@ void ValFarLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	// calculate VAL and FAR
 	int positive_pairs = 0;
 	int true_positive_pairs = 0;
+	float positive_distances = 0;
 	int negative_pairs = 0;
 	int false_negative_pairs = 0;
+	float negative_distances = 0;
 
 	// row
 	for(int i = 0; i < num; i ++)
@@ -75,6 +79,7 @@ void ValFarLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 			if(label[j] == label[i])
 			{
 				positive_pairs += 1;
+				positive_distances += distance;
 				if(distance <= threshold_)
 				{
 					true_positive_pairs += 1;
@@ -83,6 +88,7 @@ void ValFarLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 			else
 			{
 				negative_pairs += 1;
+				negative_distances += distance;
 				if(distance <= threshold_)
 				{
 					false_negative_pairs += 1;
@@ -94,7 +100,9 @@ void ValFarLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 	// calculate VAR and FAR
 	top[0]->mutable_cpu_data()[0] = true_positive_pairs / positive_pairs;
-	top[1]->mutable_cpu_data()[0] = false_negative_pairs / negative_pairs;
+	top[1]->mutable_cpu_data()[0] = positive_distances / positive_pairs;
+	top[2]->mutable_cpu_data()[0] = false_negative_pairs / negative_pairs;
+	top[3]->mutable_cpu_data()[0] = negative_distances / negative_pairs;
 	
 }
 

@@ -24,7 +24,7 @@ class ValFarLayer : public Layer<Dtype> {
   virtual inline const char* type() const { return "ValFar"; }
 
   virtual inline int ExactNumBottomBlobs() const { return 2; }
-  virtual inline int ExactNumTopBlobs() const { return 2; }
+  virtual inline int ExactNumTopBlobs() const { return 4; }
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
