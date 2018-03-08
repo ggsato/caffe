@@ -57,7 +57,7 @@ void RankHardLossLayer<Dtype>::set_mask(const vector<Blob<Dtype>*>& bottom)
 	int count = bottom[0]->count();
 	// the batch size
 	int num = bottom[0]->num();
-	// the total number of array elements per batch
+	// the total number of array elements per batch including channels
 	int dim = bottom[0]->count() / bottom[0]->num();
 
 	// reshaped data of dis_ and mask_
@@ -83,7 +83,8 @@ void RankHardLossLayer<Dtype>::set_mask(const vector<Blob<Dtype>*>& bottom)
 			const Dtype* fea1 = bottom_data + i * dim;
 			// features of an input image 2
 			const Dtype* fea2 = bottom_data + j * dim;
-			// see paper, maybe, ts = D(X1, X2)
+			// see paper, ts = D(X1, X2)
+			// note that |f(Xi)|=1 after Norm layer
 			Dtype ts = 0;
 			for(int k = 0; k < dim; k ++)
 			{

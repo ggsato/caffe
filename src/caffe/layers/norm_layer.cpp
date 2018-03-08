@@ -68,6 +68,25 @@ void NormLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 			  }
 	  }
 
+      // calculate magnitude of each feature, then normalize so that |f(Xi)| becomes 1
+      /**
+      for(int i = 0; i < num; i ++)
+      {
+          const Dtype* features = bottom_data + i * dim;
+          Dtype sumdata = 0;
+          for(int k = 0; k < dim; k ++)
+          {
+              sumdata += features[k] * features[k];
+          }
+          // normalize each feature
+          sumdata = sqrt(sumdata) + 1e-6;
+          for(int k = 0; k < dim; k ++)
+          {
+              features[k] /= sumdata;
+          }
+      }
+      **/
+
 }
 
 template <typename Dtype>
