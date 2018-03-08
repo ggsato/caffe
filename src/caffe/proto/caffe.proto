@@ -318,7 +318,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 //
-// LayerParameter next available layer-specific ID: 147 (last added: image_pair_data_param)
+// LayerParameter next available layer-specific ID: 148 (last added: val_far_param)
 message LayerParameter {
   optional string name = 1; // the layer name
   optional string type = 2; // the layer type
@@ -417,6 +417,8 @@ message LayerParameter {
   // rank hard loss
   optional RankParameter rank_param = 145;
   optional ImagePairDataParameter image_pair_data_param = 146;
+  // valfar
+  optional ValFarParameter val_far_param = 147;
 
   // NVIDIA PARAMETERS (Start with 68 because NV is 68 on an old-style phone)
   optional DetectNetGroundTruthParameter detectnet_groundtruth_param = 6801;
@@ -1311,6 +1313,12 @@ message ImagePairDataParameter {
   optional string root_folder = 12 [default = ""];
   optional uint32 pair_size = 13 [default = 1];
 }
+
+// Message that stores parameters used by ValFarLayer
+message ValFarParameter {
+  optional float threshold = 1 [default = 0.5]; 
+}
+
 
 message SPPParameter {
   enum PoolMethod {

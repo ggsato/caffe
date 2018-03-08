@@ -83,7 +83,7 @@ void RankHardLossLayer<Dtype>::set_mask(const vector<Blob<Dtype>*>& bottom)
 			const Dtype* fea1 = bottom_data + i * dim;
 			// features of an input image 2
 			const Dtype* fea2 = bottom_data + j * dim;
-			// see paper, ts = D(X1, X2)
+			// see paper, ts = 1 - D(X1, X2)
 			// note that |f(Xi)|=1 after Norm layer
 			Dtype ts = 0;
 			for(int k = 0; k < dim; k ++)
@@ -91,9 +91,9 @@ void RankHardLossLayer<Dtype>::set_mask(const vector<Blob<Dtype>*>& bottom)
 			  ts += (fea1[k] * fea2[k]) ;
 			}
 			// upper right half
-			dis_data[i * num + j] = -ts;
+			dis_data[i * num + j] = 1 - ts;
 			// lower left half
-			dis_data[j * num + i] = -ts;
+			dis_data[j * num + i] = 1 - ts;
 		}
 	}
 
