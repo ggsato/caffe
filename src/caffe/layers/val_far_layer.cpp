@@ -73,6 +73,7 @@ void ValFarLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 			  ts += (fea1[k] * fea2[k]) ;
 			}
 
+			// at first, features stay closer, so destances start closely to zero e.g. within 0.001 ~ 0.0001
 			float distance = 1 - ts;
 			
 			// the label is the same, this means i and j are a positive pair
@@ -99,9 +100,21 @@ void ValFarLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 	}
 
 	// calculate VAR and FAR
-	top[0]->mutable_cpu_data()[0] = true_positive_pairs / positive_pairs;
-	top[1]->mutable_cpu_data()[0] = positive_distances / positive_pairs;
-	top[2]->mutable_cpu_data()[0] = false_negative_pairs / negative_pairs;
+	float val = true_positive_pairs / positive_pairs;
+	float far = false_negative_pairs / negative_pairs;
+	bool initializing = (val == 1.0) && (far == 1.0);
+	if(initializing)
+	{
+		// -1 indicates N/A
+		top[0]->mutable_cpu_data()[0] = -1;
+		top[1]->mutable_cpu_data()[0] = -1;
+	}
+	else
+	{
+		top[0]->mutable_cpu_data()[0] = val;
+		top[1]->mutable_cpu_data()[0] = far;
+	}
+	top[2]->mutable_cpu_data()[0] = positive_distances / positive_pairs;
 	top[3]->mutable_cpu_data()[0] = negative_distances / negative_pairs;
 	
 }
