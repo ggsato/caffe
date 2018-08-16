@@ -1,0 +1,318 @@
+name: "mnist_tripletloss_train_test_10"
+layer {
+  name: "triplet_data"
+  type: "ImageData"
+  top: "triplet_data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  image_data_param {
+    source: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist/trainlist_64.txt"
+    batch_size: 64
+  }
+}
+layer {
+  name: "triplet_data"
+  type: "ImageData"
+  top: "triplet_data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  image_data_param {
+    source: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist/trainlist_64.txt"
+    batch_size: 64
+  }
+}
+################# CNN #############
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "triplet_data"
+  top: "conv1"
+  param {
+    name: "conv1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv1_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 20
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2"
+  param {
+    name: "conv2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv2_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 50
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+  bottom: "pool2"
+  top: "ip1"
+  param {
+    name: "ip1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip1_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 500
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "ip1"
+  top: "ip1"
+}
+layer {
+  name: "ip2"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "feat"
+  param {
+    name: "ip2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip2_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+############# L2 Normalization ############
+
+layer {
+  name: "Reduction1"
+  type: "Reduction"
+  bottom: "feat"
+  top: "Reduction1"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power1"
+  type: "Power"
+  bottom: "Reduction1"
+  top: "Power1"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape1"
+  type: "Reshape"
+  bottom: "Power1"
+  top: "Reshape1"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile1"
+  type: "Tile"
+  bottom: "Reshape1"
+  top: "Tile1"
+  tile_param {
+    axis: 1
+    tiles: 10
+  }
+}
+layer {
+  name: "norm"
+  type: "Eltwise"
+  bottom: "feat"
+  bottom: "Tile1"
+  top: "embedding"
+  eltwise_param {
+    operation: PROD
+  }
+}
+
+############# pairwise distance ###############
+layer {
+  name: "pairwise_dist"
+  type: "Python"
+  bottom: "embedding"
+  top: "dist_matrix"
+  python_param {
+    module: "pairwise_distances_layer"
+    layer: "PairwiseDistancesLayer"
+    param_str: '{\"margin\": 1.0}'
+  }
+}
+
+############# anc-pos/anc-neg mask ###############
+
+layer {
+  name: "mask"
+  type: "Python"
+  bottom: "label"
+  top: "a_p_mask"
+  top: "a_n_mask"
+  python_param {
+    module: "triplet_mask_layer"
+    layer: "TripletMaskLayer"
+  }
+}
+
+############# anc-pos dist ###############
+
+layer {
+  name: "pos_filter"
+  type: "Eltwise"
+  bottom: "dist_matrix"
+  bottom: "a_p_mask"
+  top: "pos_survive"
+  eltwise_param { operation: PROD }
+}
+
+layer {
+  name: "pos_argmax"
+  type: "ArgMax"
+  bottom: "pos_survive"
+  top: "pos_dist"
+  argmax_param {
+  axis: 1
+  }
+}
+
+############# anc-neg dist ###############
+
+layer {
+  name: "neg_filter"
+  type: "Eltwise"
+  bottom: "dist_matrix"
+  bottom: "a_n_mask"
+  top: "neg_survive"
+  eltwise_param { operation: PROD }
+}
+
+
+layer {
+  name: "scale1"
+  bottom: "neg_survive"
+  top: "neg_minus"
+  type: "Power"
+  power_param {
+    scale: -1
+  }
+}
+
+layer {
+  name: "neg_argmax"
+  type: "ArgMax"
+  bottom: "neg_minus"
+  top: "neg_argmax"
+  argmax_param {
+  axis: 1
+  }
+}
+
+layer {
+  name: "scale2"
+  bottom: "neg_argmax"
+  top: "neg_dist"
+  type: "Power"
+  power_param {
+    scale: -1
+  }
+}
+
+############# loss ###############
+
+layer {
+  name: "mean_triplet_loss"
+  type: "Python"
+  bottom: "pos_dist"
+  bottom: "neg_dist"
+  top: "loss"
+  python_param {
+    module: "mean_triplet_loss_layer"
+    layer: "MeanTripletLossLayer"
+    param_str: '{\"debug\": 1.0}'
+  }
+}

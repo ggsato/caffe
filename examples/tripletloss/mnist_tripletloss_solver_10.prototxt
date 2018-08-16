@@ -1,0 +1,22 @@
+# The train/test net protocol buffer definition
+train_net: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist_omoindrot_tripletloss_train_test_10.prototxt"
+test_net: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist_omoindrot_tripletloss_train_test_10.prototxt"
+# samples = 192 * 77 = 14784
+test_iter: 77
+# test at every epoch
+test_interval: 77
+# The base learning rate, momentum and the weight decay of the network.
+base_lr: 0.01
+momentum: 0.9
+weight_decay: 0.0005
+# The learning rate policy
+lr_policy: "inv"
+gamma: 0.0001
+power: 0.75
+# Display every epoch
+display: 77
+# The maximum number of iterations = 10 epochs
+max_iter: 770
+# snapshot intermediate results at every epoch
+snapshot: 77
+snapshot_prefix: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist/mnist_tripletloss"

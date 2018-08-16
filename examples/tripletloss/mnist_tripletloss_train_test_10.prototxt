@@ -1,0 +1,637 @@
+name: "mnist_tripletloss_train_test_10"
+layer {
+  name: "triplet_data"
+  type: "ImageData"
+  top: "triplet_data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  image_data_param {
+    source: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist/trainlist_64.txt"
+    batch_size: 192
+  }
+}
+layer {
+  name: "triplet_data"
+  type: "ImageData"
+  top: "triplet_data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  image_data_param {
+    source: "/home/researcher/caffe-tripletloss/examples/tripletloss/mnist/trainlist_64.txt"
+    batch_size: 192
+  }
+}
+layer {
+  name: "slice_triplet"
+  type: "Slice"
+  bottom: "triplet_data"
+  top: "anchor"
+  top: "positive"
+  top: "negative"
+  slice_param {
+    slice_dim: 0
+  }
+}
+
+################# ANCHOR #############
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "anchor"
+  top: "conv1"
+  param {
+    name: "conv1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv1_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 20
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2"
+  param {
+    name: "conv2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv2_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 50
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+  bottom: "pool2"
+  top: "ip1"
+  param {
+    name: "ip1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip1_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 500
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "ip1"
+  top: "ip1"
+}
+layer {
+  name: "ip2"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "feat"
+  param {
+    name: "ip2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip2_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+###################### POSITIVE ###################
+
+layer {
+  name: "conv1_p"
+  type: "Convolution"
+  bottom: "positive"
+  top: "conv1_p"
+  param {
+    name: "conv1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv1_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 20
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool1_p"
+  type: "Pooling"
+  bottom: "conv1_p"
+  top: "pool1_p"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv2_p"
+  type: "Convolution"
+  bottom: "pool1_p"
+  top: "conv2_p"
+  param {
+    name: "conv2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv2_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 50
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool2_p"
+  type: "Pooling"
+  bottom: "conv2_p"
+  top: "pool2_p"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "ip1_p"
+  type: "InnerProduct"
+  bottom: "pool2_p"
+  top: "ip1_p"
+  param {
+    name: "ip1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip1_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 500
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1_p"
+  type: "ReLU"
+  bottom: "ip1_p"
+  top: "ip1_p"
+}
+layer {
+  name: "ip2_p"
+  type: "InnerProduct"
+  bottom: "ip1_p"
+  top: "feat_p"
+  param {
+    name: "ip2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip2_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+######################### NEGATIVE #########################
+
+layer {
+  name: "conv1_n"
+  type: "Convolution"
+  bottom: "negative"
+  top: "conv1_n"
+  param {
+    name: "conv1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv1_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 20
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool1_n"
+  type: "Pooling"
+  bottom: "conv1_n"
+  top: "pool1_n"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv2_n"
+  type: "Convolution"
+  bottom: "pool1_n"
+  top: "conv2_n"
+  param {
+    name: "conv2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "conv2_b"
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 50
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool2_n"
+  type: "Pooling"
+  bottom: "conv2_n"
+  top: "pool2_n"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "ip1_n"
+  type: "InnerProduct"
+  bottom: "pool2_n"
+  top: "ip1_n"
+  param {
+    name: "ip1_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip1_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 500
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1_n"
+  type: "ReLU"
+  bottom: "ip1_n"
+  top: "ip1_n"
+}
+layer {
+  name: "ip2_n"
+  type: "InnerProduct"
+  bottom: "ip1_n"
+  top: "feat_n"
+  param {
+    name: "ip2_w"
+    lr_mult: 1
+  }
+  param {
+    name: "ip2_b"
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+############# L2 Normalization ############
+
+layer {
+  name: "Reduction1"
+  type: "Reduction"
+  bottom: "feat"
+  top: "Reduction1"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power1"
+  type: "Power"
+  bottom: "Reduction1"
+  top: "Power1"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape1"
+  type: "Reshape"
+  bottom: "Power1"
+  top: "Reshape1"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile1"
+  type: "Tile"
+  bottom: "Reshape1"
+  top: "Tile1"
+  tile_param {
+    axis: 1
+    tiles: 10
+  }
+}
+layer {
+  name: "slice_anc_norm"
+  type: "Eltwise"
+  bottom: "feat"
+  bottom: "Tile1"
+  top: "slice_anc_norm"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "Reduction2"
+  type: "Reduction"
+  bottom: "feat_p"
+  top: "Reduction2"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power2"
+  type: "Power"
+  bottom: "Reduction2"
+  top: "Power2"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape2"
+  type: "Reshape"
+  bottom: "Power2"
+  top: "Reshape2"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile2"
+  type: "Tile"
+  bottom: "Reshape2"
+  top: "Tile2"
+  tile_param {
+    axis: 1
+    tiles: 10
+  }
+}
+layer {
+  name: "slice_pos_norm"
+  type: "Eltwise"
+  bottom: "feat_p"
+  bottom: "Tile2"
+  top: "slice_pos_norm"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "Reduction3"
+  type: "Reduction"
+  bottom: "feat_n"
+  top: "Reduction3"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power3"
+  type: "Power"
+  bottom: "Reduction3"
+  top: "Power3"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape3"
+  type: "Reshape"
+  bottom: "Power3"
+  top: "Reshape3"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile3"
+  type: "Tile"
+  bottom: "Reshape3"
+  top: "Tile3"
+  tile_param {
+    axis: 1
+    tiles: 10
+  }
+}
+layer {
+  name: "slice_neg_norm"
+  type: "Eltwise"
+  bottom: "feat_n"
+  bottom: "Tile3"
+  top: "slice_neg_norm"
+  eltwise_param {
+    operation: PROD
+  }
+}
+
+############# Triplet Loss ###############
+layer {
+  name: "tripletloss"
+  type: "Python"
+  bottom: "slice_anc_norm"
+  bottom: "slice_pos_norm"
+  bottom: "slice_neg_norm"
+  top: "loss"
+  loss_weight: 1
+  python_param {
+    module: "tripletloss_layer"
+    layer: "TripletLossLayer"
+    param_str: '{\"margin\": 1.0}'
+  }
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "pos_dist"
+  type: "Python"
+  bottom: "slice_anc_norm"
+  bottom: "slice_pos_norm"
+  top: "pos_dist"
+  python_param {
+    module: "tripletloss_layer"
+    layer: "PairwiseDistanceLayer"
+    param_str: '{\"debug\": 0}'
+  }
+  include {
+    phase: TEST
+  }
+}
+layer {
+  name: "neg_dist"
+  type: "Python"
+  bottom: "slice_anc_norm"
+  bottom: "slice_neg_norm"
+  top: "neg_dist"
+  python_param {
+    module: "tripletloss_layer"
+    layer: "PairwiseDistanceLayer"
+    param_str: '{\"debug\": 0}'
+  }
+  include {
+    phase: TEST
+  }
+}
+layer{
+  name: "silence"
+  type: "Silence"
+  bottom: "label"
+}

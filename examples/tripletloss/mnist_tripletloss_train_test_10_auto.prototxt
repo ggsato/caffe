@@ -1,0 +1,199 @@
+layer {
+  name: "ip"
+  type: "DummyData"
+  top: "ip"
+  top: "label"
+  transform_param {
+    scale: 0.00392156862745
+  }
+  dummy_data_param {
+    shape {
+      dim: 3
+      dim: 3
+    }
+    shape {
+      dim: 1
+    }
+  }
+}
+layer {
+  name: "slice_anc"
+  type: "Slice"
+  bottom: "ip"
+  top: "slice_anc"
+  top: "slice_pos"
+  top: "slice_neg"
+  slice_param {
+    axis: 0
+  }
+}
+layer {
+  name: "Reduction1"
+  type: "Reduction"
+  bottom: "slice_anc"
+  top: "Reduction1"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power1"
+  type: "Power"
+  bottom: "Reduction1"
+  top: "Power1"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape1"
+  type: "Reshape"
+  bottom: "Power1"
+  top: "Reshape1"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile1"
+  type: "Tile"
+  bottom: "Reshape1"
+  top: "Tile1"
+  tile_param {
+    axis: 1
+    tiles: 3
+  }
+}
+layer {
+  name: "slice_anc_norm"
+  type: "Eltwise"
+  bottom: "slice_anc"
+  bottom: "Tile1"
+  top: "slice_anc_norm"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "Reduction2"
+  type: "Reduction"
+  bottom: "slice_pos"
+  top: "Reduction2"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power2"
+  type: "Power"
+  bottom: "Reduction2"
+  top: "Power2"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape2"
+  type: "Reshape"
+  bottom: "Power2"
+  top: "Reshape2"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile2"
+  type: "Tile"
+  bottom: "Reshape2"
+  top: "Tile2"
+  tile_param {
+    axis: 1
+    tiles: 3
+  }
+}
+layer {
+  name: "slice_pos_norm"
+  type: "Eltwise"
+  bottom: "slice_pos"
+  bottom: "Tile2"
+  top: "slice_pos_norm"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "Reduction3"
+  type: "Reduction"
+  bottom: "slice_neg"
+  top: "Reduction3"
+  reduction_param {
+    operation: SUMSQ
+    axis: 1
+  }
+}
+layer {
+  name: "Power3"
+  type: "Power"
+  bottom: "Reduction3"
+  top: "Power3"
+  power_param {
+    power: -0.5
+  }
+}
+layer {
+  name: "Reshape3"
+  type: "Reshape"
+  bottom: "Power3"
+  top: "Reshape3"
+  reshape_param {
+    shape {
+      dim: 1
+    }
+    axis: -1
+    num_axes: 0
+  }
+}
+layer {
+  name: "Tile3"
+  type: "Tile"
+  bottom: "Reshape3"
+  top: "Tile3"
+  tile_param {
+    axis: 1
+    tiles: 3
+  }
+}
+layer {
+  name: "slice_neg_norm"
+  type: "Eltwise"
+  bottom: "slice_neg"
+  bottom: "Tile3"
+  top: "slice_neg_norm"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "triplet"
+  type: "Python"
+  bottom: "slice_anc_norm"
+  bottom: "slice_pos_norm"
+  bottom: "slice_neg_norm"
+  top: "triplet"
+  loss_weight: 1
+  python_param {
+    module: "tripletloss_layer"
+    layer: "TripletLossLayer"
+    param_str: "{\"margin\": 1.0, \"debug\": 1}"
+  }
+}
